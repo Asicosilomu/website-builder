@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Asicosilomu Website Builder!</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" /> 
+		<style type="text/css">
+			body {
+				margin: 0px;
+				padding: 0px;
+			}
+
+			#main {
+				display: flex;
+				margin: 0px;
+				width: 100vw;
+				height: 100vh;
+			}
+
+			#webcont, #palette {
+				height: calc(100vh - 20px);
+				margin: 0px;
+				padding: 10px;
+			}
+
+			#webcont {
+				width: 100vw;
+			}
+
+			#palette {
+				flex: 1 1 0%;
+			}
+
+			#splitd {
+				width: 5px;
+				margin: 0px;
+				background-color: black;
+				height: 100vh;
+			}
+
+			#splitd:hover {
+				cursor: col-resize;
+			}
+
+			.paletteItem {
+				margin: 0px;
+			}
+			
+			a { color: darkblue !important; text-decoration: underline; }
+
+			* { font-family: sans-serif; }
+		</style>
+		<script type="text/javascript">
+			window.addEventListener("DOMContentLoaded", (e) => {
+				// Snatched from https://htmldom.dev/create-resizable-split-views/
+				// Query the element
+				const resizer = document.querySelector("#splitd");
+				const leftSide = resizer.previousElementSibling;
+				const rightSide = resizer.nextElementSibling;
+
+				// The current position of mouse
+				let x = 0;
+				let y = 0;
+
+				// Width of left side
+				let leftWidth = 0;
+
+				// Handle the mousedown event
+				// that's triggered when user drags the resizer
+
+const mouseMoveHandler = function (e) {
+					    // How far the mouse has been moved
+					    const dx = e.clientX - x;
+					    const dy = e.clientY - y;
+
+					    const newLeftWidth = ((leftWidth + dx) * 100) / resizer.parentNode.getBoundingClientRect().width;
+					    leftSide.style.width = `${newLeftWidth}%`;
+					document.body.style.cursor = 'col-resize';
+				};
+
+				const mouseUpHandler = function () {
+					    resizer.style.removeProperty('cursor');
+					    document.body.style.removeProperty('cursor');
+
+					    leftSide.style.removeProperty('user-select');
+					    leftSide.style.removeProperty('pointer-events');
+
+					    rightSide.style.removeProperty('user-select');
+					    rightSide.style.removeProperty('pointer-events');
+
+					    // Remove the handlers of `mousemove` and `mouseup`
+					    document.removeEventListener('mousemove', mouseMoveHandler);
+					    document.removeEventListener('mouseup', mouseUpHandler);
+				};
+
+
+				const mouseDownHandler = function (e) {
+					    // Get the current mouse position
+					    x = e.clientX;
+					    y = e.clientY;
+					    leftWidth = leftSide.getBoundingClientRect().width;
+
+					    // Attach the listeners to `document`
+					    document.addEventListener('mousemove', mouseMoveHandler);
+					    document.addEventListener('mouseup', mouseUpHandler);
+				};
+
+								// Attach the handler
+				resizer.addEventListener('mousedown', mouseDownHandler);
+			});
+		</script>
+		<script type="text/javascript">
+			function allowDrop(ev) {
+				  ev.preventDefault();
+			}
+
+			function drag(ev) {
+				  ev.dataTransfer.setData("text", ev.target.id);
+			}
+
+			function drop(ev) {
+				  ev.preventDefault();
+				  var data = ev.dataTransfer.getData("text");
+				  document.getElementById(data).classList.remove("paletteItem");
+				console.warn(ev.target.className);
+				  if (ev.target.classList.contains("noinherit")) ev.target.innerText = "";
+				  document.getElementById(data).classList.add("inserted");
+				  ev.target.appendChild(document.getElementById(data));
+				  loadPalette();
+			}
+
+			window.addEventListener("DOMContentLoaded", (e) => {
+				// Asicosilomu Website Editor
+				var cont = document.body.querySelector("#webcont");
+				var pal = document.body.querySelector("#palette");
+				var elements = [
+					`<div class='noinherit'>Inheritance Blocker</div>`,
+					`<h1>Header</h1>`,
+					`<h2>Header</h2>`,
+					`<h3>Header</h3>`,
+					`<h4>Header</h4>`,
+					`<h5>Header</h5>`,
+					`<h6>Header</h6>`,
+					`<p>Paragraph</p>`,
+					`<a>Link</a>`,
+					`<div>Div</div>`,
+					`<b>Bold text</b>`,
+					`<i>Italic text</i>`,
+					`<u>Underline text</u>`,
+					`<marquee>Marquee</marquee>`,
+					`<button>Button</button>`,
+					`<ul>Unordered list</ul>`,
+					`<ol>Ordered list</ol>`,
+					`<li>List item</li>`,
+				];
+				
+				window.loadPalette = function () {
+					pal.innerHTML = "";
+					for (var i = 0; i < elements.length; i++) {
+						pal.innerHTML += elements[i];
+						var el = pal.lastElementChild;
+						el.draggable = "true";
+						el.setAttribute("ondragstart", "drag(event)");
+						el.setAttribute("onclick", "if(this.tagName.toLowerCase()=='a'&&this.contentEditable!='true'){this.innerText=this.innerText+'|'+this.href};this.contentEditable=true;this.focus()");
+						el.setAttribute("onfocusout", "this.contentEditable=false;if(this.tagName.toLowerCase()=='a'){this.href=this.innerText.split('|')[1];this.innerText=this.innerText.split('|')[0]}");
+						el.classList.add("paletteItem");
+						el.id = (Math.random() * Math.random()).toString();
+						pal.innerHTML += "<br>";
+					}
+				}
+
+				loadPalette();
+
+				window.expor = function () {
+					      //var co = document.createElement("div");
+						var co = cont.cloneNode(true);
+						var cl = co.querySelectorAll("*");
+					for (var i = 0; i < cl.length; i++) {
+						var z = cl[i];
+						if (z.id != "EXPORT") {
+						z.removeAttribute("id");
+						z.classList.remove("inserted");
+						if (z.className == "") z.removeAttribute("class");
+						z.removeAttribute("draggable");
+						z.removeAttribute("ondragstart");
+						z.removeAttribute("onclick");
+						z.removeAttribute("onfocusout");
+						z.removeAttribute("contenteditable");
+						} else { z.remove(); };
+					}
+					var treeWalker = document.createTreeWalker(
+						  co,
+						  NodeFilter.SHOW_ALL,
+						  null,
+						  false
+						);
+					while (treeWalker.nextNode()) {
+					    if (treeWalker.currentNode.nodeType === 8) treeWalker.currentNode.remove();
+					}
+					var b = co.querySelectorAll("br");
+					b[0].remove(); b[1].remove();
+					var f = "data:text/html," + co.innerHTML.replaceAll("\n", "").replaceAll("\r","").replaceAll("\t","");
+					prompt("Copy your data url from below:", f);
+				};
+				
+				window.impor = function (g) {
+					var d = g || prompt("Paste the data url below:");
+					var e = document.createElement("div");
+					e.innerHTML = d.replace("data:text/html,", "");
+					e.querySelector("style").remove();
+					var f = e.querySelectorAll("*");
+					for (var i = 0; i < f.length; i++) {
+						var el = f[i];
+						el.draggable = "true";
+						el.setAttribute("ondragstart", "drag(event)");
+						el.setAttribute("onclick", "if(this.tagName.toLowerCase()=='a'&&this.contentEditable!='true'){this.innerText=this.innerText+'|'+this.href};this.contentEditable=true;this.focus()");
+						el.setAttribute("onfocusout", "this.contentEditable=false;if(this.tagName.toLowerCase()=='a'){this.href=this.innerText.split('|')[1];this.innerText=this.innerText.split('|')[0]}");
+						el.id = Math.random().toString();
+						el.classList.add("inserted");
+					}
+					cont.querySelectorAll(".inserted").forEach(function(e){e.remove()});
+					cont.innerHTML += e.innerHTML;
+				}
+
+				impor("data:text/html,<style></style><h1>Welcome to <i>Asicosilomu Website Builder</i>!</h1><p>This simple web app allows you to create your own websites without any code. To get started, click on this text to edit it, or drag in elements from the palette on the right, which can be resized, if you see the need for such. To delete an element, simply drag it into the palette.<br><br>Regarding links, in order to set a link target, you must format your link adequately. The link should contain a \"|\". On the left side of that, you'll type the link's name, and, on the right, the destination address. To create a link with the text Google, that points to the Google website, change it to this: <b>Google|https://google.com</b>. List items may be buggy, and you'll need to click on the list's title to get access to edit the elements.</p><h3>Have fun!</h3>");
+			});
+		</script>
+	</head>
+	<body>
+		<div id="main">
+			<div id="webcont" ondrop="drop(event)" ondragover="allowDrop(event)">
+				<!--<style type="text/css">
+					h1, h2, h3, h4, h5, h6 { font-weight: bold; text-decoration: none; color: initial; }
+					p, div { text-decoration: initial; color: initial; font-weight: initial; }
+					b { text-decoration: initial; color: initial; font-weight: bold; }
+					i { text-decoration: initial; color: initial; font-weight: italic; }
+					u { text-decoration: underline; color: initial; font-weight: initial; }
+					a { text-decoration: underline; color: darkblue; font-weight: initial; }
+					h1 { font-size: 32px; }
+					h2 { font-size: 24px; }
+					h3 { font-size: 18.72px; }
+					h4, p, a, div, b, i, u, button { font-size: 16px; }
+					h5 { font-size: 13.28px; }
+					h6 { font-size: 10.72px; }
+					li { margin-left: 10px; }
+				</style>-->
+				<style type="text/css">
+					.noinherit { all: initial; }
+					* { font-family: sans-serif; }
+				</style>
+				<button id="EXPORT" onclick="expor();">Export to HTML...</button><button id="EXPORT" onclick="impor();">Import existing project...</button><br><br>
+			</div>
+			<div id="splitd"></div>
+			<div id="palette" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+		</div>
+	</body>
+</html>
